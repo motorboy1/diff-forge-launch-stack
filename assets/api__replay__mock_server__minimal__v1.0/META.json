@@ -1,0 +1,18 @@
+{
+  "asset_id": "api__replay__mock_server__minimal__v1.0",
+  "domain": "web_clone",
+  "category": "api/replay",
+  "risk": "medium",
+  "portability": "high",
+  "compatible_stack": ["Node.js 18+", "Any frontend", "Rails 7+ (proxy optional)"],
+  "estimated_apply_time": "30-90 min",
+  "problem_statement": "Clone cannot call original APIs; need local replay/mocking to make UI appear functional.",
+  "before_symptom": "CORS failures; 401/403; endpoints unreachable; UI empty.",
+  "after_expected": "Local mock server responds to recorded endpoints with deterministic fixtures.",
+  "inputs_expected": ["network.har or api_calls.json", "fixtures directory"],
+  "outputs_produced": ["mock server", "route handlers", "fixtures"],
+  "gate_pass": true,
+  "gate_condition": "Critical pages render with mock server enabled and no API errors in console.",
+  "source_run_ids": ["RUN-PLACEHOLDER"],
+  "tags": ["mock", "replay", "fixtures", "api"]
+}

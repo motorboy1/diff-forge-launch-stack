@@ -1,0 +1,18 @@
+{
+  "asset_id": "routes__build__static_router_map__v1.0",
+  "domain": "web_clone",
+  "category": "routes/build",
+  "risk": "medium",
+  "portability": "high",
+  "compatible_stack": ["static-html", "Rails 7+", "Next.js 13+"],
+  "estimated_apply_time": "30-90 min",
+  "problem_statement": "Discovered pages exist but routing does not map them correctly in the cloned project.",
+  "before_symptom": "Links go to missing routes; server returns 404; SPA needs fallback; file paths wrong.",
+  "after_expected": "A router map is generated and served correctly (static files or framework routes).",
+  "inputs_expected": ["routes.json", "exported page artifacts"],
+  "outputs_produced": ["route_map.json", "framework route stubs (optional)", "static file layout"],
+  "gate_pass": true,
+  "gate_condition": "All routes in route_map resolve to a file/page and link smoke test passes.",
+  "source_run_ids": ["RUN-PLACEHOLDER"],
+  "tags": ["routing", "static", "multipage"]
+}

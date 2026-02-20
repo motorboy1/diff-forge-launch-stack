@@ -1,0 +1,18 @@
+{
+  "asset_id": "routes__discover__crawl_internal_pages__v1.0",
+  "domain": "web_clone",
+  "category": "routes/discovery",
+  "risk": "low",
+  "portability": "high",
+  "compatible_stack": ["static-html", "Rails 7+", "Next.js 13+", "Any web server"],
+  "estimated_apply_time": "20-60 min",
+  "problem_statement": "Only the landing page is cloned; internal pages are missing.",
+  "before_symptom": "Clicking cards leads to original site or 404; internal pages not saved.",
+  "after_expected": "Crawler discovers and exports internal pages list + fetch plan (route map).",
+  "inputs_expected": ["base URL", "crawl depth/limit", "internal domain rules"],
+  "outputs_produced": ["routes.json", "sitemap-like route list", "crawl logs"],
+  "gate_pass": true,
+  "gate_condition": "Crawler outputs >= N internal routes (config) and includes required pages (pricing/terms/etc if present).",
+  "source_run_ids": ["RUN-PLACEHOLDER"],
+  "tags": ["crawler", "routes", "multipage"]
+}

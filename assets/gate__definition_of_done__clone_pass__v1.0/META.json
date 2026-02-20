@@ -1,0 +1,18 @@
+{
+  "asset_id": "gate__definition_of_done__clone_pass__v1.0",
+  "domain": "web_clone",
+  "category": "gate/dod",
+  "risk": "high",
+  "portability": "high",
+  "compatible_stack": ["Any"],
+  "estimated_apply_time": "20-45 min",
+  "problem_statement": "Cloning efforts drift without a hard PASS definition; 'looks similar' is not reproducible.",
+  "before_symptom": "Repeated manual checking; unclear completion; regressions unnoticed.",
+  "after_expected": "A single command outputs PASS/FAIL for clone readiness.",
+  "inputs_expected": ["site/", "routes.json or route_map.json", "Playwright tests", "mock server (optional)"],
+  "outputs_produced": ["verify script", "PASS/FAIL report", "artifacts (report/screenshots)"],
+  "gate_pass": true,
+  "gate_condition": "All 5 gates pass: ROUTES, ASSETS, NAV, API (if enabled), TESTS.",
+  "source_run_ids": ["RUN-PLACEHOLDER"],
+  "tags": ["gate", "definition-of-done", "verification"]
+}

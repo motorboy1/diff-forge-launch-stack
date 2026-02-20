@@ -1,0 +1,18 @@
+{
+  "asset_id": "nav__runtime__hover_dropdown_megamenu__v1.0",
+  "domain": "web_clone",
+  "category": "nav/runtime",
+  "risk": "medium",
+  "portability": "high",
+  "compatible_stack": ["static-html", "Rails 7+", "Next.js 13+", "Vite/React"],
+  "estimated_apply_time": "20-45 min",
+  "problem_statement": "Hover/dropdown/mega menu interactions do not work after cloning (missing JS event delegation + state classes).",
+  "before_symptom": "Hover does nothing; dropdown does not open; mega menu never appears; focus/keyboard navigation broken.",
+  "after_expected": "Hover/focus opens dropdown/mega menu; click toggles on touch devices; ESC closes; outside click closes; ARIA state updates.",
+  "inputs_expected": ["cloned HTML nav markup", "CSS for nav states (or class hooks)"],
+  "outputs_produced": ["navigation runtime script", "minimal state CSS hooks (optional)"],
+  "gate_pass": true,
+  "gate_condition": "All nav interactions pass VERIFY.md scenarios on desktop+mobile emulation, with no console errors.",
+  "source_run_ids": ["RUN-PLACEHOLDER"],
+  "tags": ["navigation", "hover", "dropdown", "mega-menu", "event-delegation", "aria"]
+}

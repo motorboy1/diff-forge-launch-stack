@@ -1,0 +1,18 @@
+{
+  "asset_id": "ui__test__link_smoke__playwright__v1.0",
+  "domain": "web_clone",
+  "category": "test/ui",
+  "risk": "low",
+  "portability": "high",
+  "compatible_stack": ["static-html", "Rails 7+", "Next.js 13+", "Any web server"],
+  "estimated_apply_time": "15-30 min",
+  "problem_statement": "After cloning, navigation links and internal routing frequently break (wrong href, missing pages, JS-only routing).",
+  "before_symptom": "Clicks do nothing; 404 on internal pages; anchors broken; wrong basePath; SPA routes not resolved.",
+  "after_expected": "All primary nav links open a valid page, return HTTP 200 (or expected redirect), and render non-empty content.",
+  "inputs_expected": ["running local server URL", "list of expected routes (optional)"],
+  "outputs_produced": ["Playwright smoke test", "HTML report"],
+  "gate_pass": true,
+  "gate_condition": "Smoke test passes for required link set (nav/footer + 10 critical routes).",
+  "source_run_ids": ["RUN-PLACEHOLDER"],
+  "tags": ["playwright", "smoke-test", "links", "routing"]
+}

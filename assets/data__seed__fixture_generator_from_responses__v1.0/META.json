@@ -1,0 +1,18 @@
+{
+  "asset_id": "data__seed__fixture_generator_from_responses__v1.0",
+  "domain": "web_clone",
+  "category": "data/fixtures",
+  "risk": "low",
+  "portability": "high",
+  "compatible_stack": ["Node.js 18+", "Python 3.10+"],
+  "estimated_apply_time": "20-60 min",
+  "problem_statement": "Recorded API responses are messy; need normalized fixtures for replay and deterministic UI.",
+  "before_symptom": "Fixtures inconsistent; missing fields; UI breaks due to shape mismatch.",
+  "after_expected": "Generator produces stable fixtures with schema hints, IDs normalized, pagination stubs, and sampled variations.",
+  "inputs_expected": ["api_calls.json or response dumps"],
+  "outputs_produced": ["fixtures/*.json", "schema_hints.json (optional)"],
+  "gate_pass": true,
+  "gate_condition": "Fixtures validate as JSON and satisfy mock server handlers without runtime exceptions.",
+  "source_run_ids": ["RUN-PLACEHOLDER"],
+  "tags": ["fixtures", "generator", "schema"]
+}

@@ -1,0 +1,18 @@
+{
+  "asset_id": "ui__test__interaction_regression__v1.0",
+  "domain": "web_clone",
+  "category": "test/ui",
+  "risk": "low",
+  "portability": "high",
+  "compatible_stack": ["static-html", "Rails 7+", "Next.js 13+", "Any web server"],
+  "estimated_apply_time": "20-40 min",
+  "problem_statement": "Cloned UI loses micro-interactions (hover states, active states, modals, accordions, tabs, scroll).",
+  "before_symptom": "Hover styles missing; accordions don't open; tabs don't switch; modal overlay broken; scroll-triggered elements never appear.",
+  "after_expected": "Key components respond to user input and render expected state changes.",
+  "inputs_expected": ["component selectors (accordion/tab/modal)", "base URL"],
+  "outputs_produced": ["interaction regression test", "screenshots diff (optional)"],
+  "gate_pass": true,
+  "gate_condition": "All required UI interactions pass in CI with stable selectors.",
+  "source_run_ids": ["RUN-PLACEHOLDER"],
+  "tags": ["ui-regression", "interaction", "playwright"]
+}

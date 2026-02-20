@@ -1,0 +1,18 @@
+{
+  "asset_id": "api__capture__xhr_fetch_har__v1.0",
+  "domain": "web_clone",
+  "category": "api/capture",
+  "risk": "low",
+  "portability": "high",
+  "compatible_stack": ["Any web server", "Playwright-capable environment"],
+  "estimated_apply_time": "20-45 min",
+  "problem_statement": "Dynamic pages rely on XHR/fetch; cloned UI shows empty states without API responses.",
+  "before_symptom": "Lists/cards empty; infinite loaders; errors in console due to missing endpoints.",
+  "after_expected": "HAR (or structured log) captures all XHR/fetch calls with request/response samples.",
+  "inputs_expected": ["base URL", "user flows (pages to visit/click)"],
+  "outputs_produced": ["network.har", "api_calls.json (optional)"],
+  "gate_pass": true,
+  "gate_condition": "Capture includes top N endpoints required for rendering critical pages (configurable).",
+  "source_run_ids": ["RUN-PLACEHOLDER"],
+  "tags": ["har", "xhr", "fetch", "capture"]
+}

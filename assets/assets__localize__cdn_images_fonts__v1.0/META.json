@@ -1,0 +1,18 @@
+{
+  "asset_id": "assets__localize__cdn_images_fonts__v1.0",
+  "domain": "web_clone",
+  "category": "assets/localize",
+  "risk": "medium",
+  "portability": "high",
+  "compatible_stack": ["static-html", "Rails 7+", "Next.js 13+", "Any web server"],
+  "estimated_apply_time": "30-90 min",
+  "problem_statement": "Clone depends on external CDN assets; offline/long-term reproducibility breaks.",
+  "before_symptom": "Images/fonts load from third-party domains; broken when offline; legal/compliance concerns; slow.",
+  "after_expected": "All external images/fonts are downloaded locally and references rewritten to local paths.",
+  "inputs_expected": ["HTML/CSS files", "asset allowlist/denylist"],
+  "outputs_produced": ["downloaded assets folder", "rewritten HTML/CSS"],
+  "gate_pass": true,
+  "gate_condition": "No remaining external asset URLs except explicit allowlist; page renders without missing resources.",
+  "source_run_ids": ["RUN-PLACEHOLDER"],
+  "tags": ["assets", "cdn", "localize", "rewrite"]
+}
