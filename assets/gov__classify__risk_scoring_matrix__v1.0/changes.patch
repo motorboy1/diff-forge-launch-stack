@@ -1,0 +1,93 @@
+diff --git a/lib/risk_scorer.rb b/lib/risk_scorer.rb
+new file mode 100644
+index 0000000..f1a2b3c
+--- /dev/null
++++ b/lib/risk_scorer.rb
+@@ -0,0 +1,74 @@
++# frozen_string_literal: true
++
++class RiskScorer
++  DOMAIN_WEIGHTS = {
++    "auth" => 3,
++    "security" => 4,
++    "governance" => 2,
++    "ops" => 3,
++    "data" => 4,
++    "ui" => 1
++  }.freeze
++
++  RISK_BANDS = {
++    low: 0..4,
++    medium: 5..8,
++    high: 9..Float::INFINITY
++  }.freeze
++
++  def initialize(meta)
++    @meta = meta
++  end
++
++  def score
++    total = 0
++    breakdown = {}
++
++    # Factor 1: Domain weight (0-4)
++    domain_score = DOMAIN_WEIGHTS.fetch(@meta["domain"], 2)
++    breakdown[:domain] = domain_score
++    total += domain_score
++
++    # Factor 2: Patch complexity (0-3)
++    complexity = estimate_complexity
++    breakdown[:complexity] = complexity
++    total += complexity
++
++    # Factor 3: Blast radius (0-3)
++    blast = estimate_blast_radius
++    breakdown[:blast_radius] = blast
++    total += blast
++
++    # Factor 4: Reversibility (0-2)
++    reversibility = estimate_reversibility
++    breakdown[:reversibility] = reversibility
++    total += reversibility
++
++    band = classify(total)
++
++    {
++      total_score: total,
++      max_possible: 12,
++      band: band,
++      breakdown: breakdown
++    }
++  end
++
++  private
++
++  def estimate_complexity
++    stack_count = (@meta["compatible_stack"] || []).size
++    stack_count >= 3 ? 1 : stack_count >= 2 ? 2 : 3
++  end
++
++  def estimate_blast_radius
++    portability = @meta["portability"]
++    case portability
++    when "high" then 1
++    when "medium" then 2
++    when "low" then 3
++    else 2
++    end
++  end
++
++  def estimate_reversibility
++    risk = @meta["risk"]
++    case risk
++    when "low" then 0
++    when "medium" then 1
++    when "high" then 2
++    else 1
++    end
++  end
++
++  def classify(score)
++    RISK_BANDS.find { |_band, range| range.include?(score) }&.first || :medium
++  end
++end

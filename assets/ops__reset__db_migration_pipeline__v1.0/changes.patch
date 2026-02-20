@@ -1,0 +1,69 @@
+diff --git a/lib/tasks/db_reset_pipeline.rake b/lib/tasks/db_reset_pipeline.rake
+new file mode 100644
+index 0000000..b7c8d12
+--- /dev/null
++++ b/lib/tasks/db_reset_pipeline.rake
+@@ -0,0 +1,58 @@
++# frozen_string_literal: true
++
++namespace :db do
++  namespace :pipeline do
++    desc "Safe migration reset with data preservation"
++    task reset: :environment do
++      raise "Cannot run in production!" if Rails.env.production?
++
++      puts "[Pipeline] Starting migration reset..."
++      timestamp = Time.current.strftime("%Y%m%d_%H%M%S")
++
++      # Step 1: Backup current data
++      backup_path = Rails.root.join("tmp", "db_backup_#{timestamp}.sql")
++      puts "[Pipeline] Step 1/5: Backing up data to #{backup_path}"
++      system("pg_dump #{db_config[:database]} --data-only > #{backup_path}")
++
++      # Step 2: Record current schema
++      schema_before = `rails db:schema:dump 2>/dev/null && cat db/schema.rb`
++
++      # Step 3: Drop and recreate
++      puts "[Pipeline] Step 2/5: Dropping database..."
++      Rake::Task["db:drop"].invoke
++
++      puts "[Pipeline] Step 3/5: Creating database..."
++      Rake::Task["db:create"].invoke
++
++      # Step 4: Run all migrations fresh
++      puts "[Pipeline] Step 4/5: Running migrations from scratch..."
++      Rake::Task["db:migrate"].invoke
++
++      # Step 5: Restore seed data
++      puts "[Pipeline] Step 5/5: Restoring seed data..."
++      Rake::Task["db:seed"].invoke
++
++      # Verify schema integrity
++      schema_after = `cat db/schema.rb`
++      if schema_before.strip == schema_after.strip
++        puts "[Pipeline] Schema integrity verified. Reset complete."
++      else
++        puts "[Pipeline] WARNING: Schema differs after reset. Review db/schema.rb"
++      end
++
++      puts "[Pipeline] Backup available at: #{backup_path}"
++    end
++
++    desc "Verify migration pipeline health"
++    task verify: :environment do
++      pending = ActiveRecord::Base.connection.migration_context.open.pending_migrations
++      if pending.empty?
++        puts "[Pipeline] All migrations are up to date."
++      else
++        puts "[Pipeline] #{pending.size} pending migrations found:"
++        pending.each { |m| puts "  - #{m.version}: #{m.name}" }
++      end
++    end
++
++    private
++
++    def db_config
++      ActiveRecord::Base.connection_db_config.configuration_hash
++    end
++  end
++end

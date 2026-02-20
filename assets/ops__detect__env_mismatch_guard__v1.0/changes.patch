@@ -1,0 +1,75 @@
+diff --git a/lib/env_mismatch_guard.rb b/lib/env_mismatch_guard.rb
+new file mode 100644
+index 0000000..a1b2c3d
+--- /dev/null
++++ b/lib/env_mismatch_guard.rb
+@@ -0,0 +1,62 @@
++# frozen_string_literal: true
++
++class EnvMismatchGuard
++  REQUIRED_ENV_VARS = %w[
++    DATABASE_URL
++    REDIS_URL
++    SECRET_KEY_BASE
++    RAILS_ENV
++  ].freeze
++
++  def initialize(manifest_path = ".env.required")
++    @manifest_path = manifest_path
++    @errors = []
++  end
++
++  def check!
++    check_required_env_vars
++    check_ruby_version
++    check_bundler_version
++    check_node_version
++    check_database_connection
++
++    if @errors.any?
++      report_errors
++      raise "Environment mismatch detected. Deploy blocked."
++    end
++
++    puts "[EnvGuard] All checks passed. Environment is consistent."
++    true
++  end
++
++  private
++
++  def check_required_env_vars
++    REQUIRED_ENV_VARS.each do |var|
++      @errors << "Missing env var: #{var}" unless ENV[var]
++    end
++  end
++
++  def check_ruby_version
++    expected = File.read(".ruby-version").strip rescue nil
++    return unless expected
++    actual = RUBY_VERSION
++    @errors << "Ruby version mismatch: expected #{expected}, got #{actual}" unless actual.start_with?(expected)
++  end
++
++  def check_bundler_version
++    expected = File.read("Gemfile.lock").scan(/BUNDLED WITH\n\s+(.+)/).flatten.first rescue nil
++    return unless expected
++    actual = Bundler::VERSION
++    @errors << "Bundler mismatch: expected #{expected}, got #{actual}" unless actual == expected
++  end
++
++  def check_node_version
++    expected = File.read(".node-version").strip rescue nil
++    return unless expected
++    actual = `node --version`.strip.delete("v") rescue nil
++    @errors << "Node version mismatch: expected #{expected}, got #{actual}" if actual && !actual.start_with?(expected)
++  end
++
++  def check_database_connection
++    ActiveRecord::Base.connection.execute("SELECT 1") rescue @errors << "Database connection failed"
++  end
++
++  def report_errors
++    puts "[EnvGuard] #{@errors.size} mismatch(es) detected:"
++    @errors.each { |e| puts "  - #{e}" }
++  end
++end

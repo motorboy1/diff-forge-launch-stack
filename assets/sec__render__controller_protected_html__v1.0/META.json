@@ -1,0 +1,12 @@
+{
+  "asset_id": "sec__render__controller_protected_html__v1.0",
+  "domain": "security",
+  "risk": "high",
+  "portability": "medium",
+  "source_run_ids": ["RUN-2026-F1B9"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "30-40 min",
+  "gate_pass": true,
+  "gate_condition": "Direct template access returns 403 and only controller-routed requests render successfully",
+  "evidence": "8 direct template access attempts all returned 403; 4 controller-routed requests rendered correctly with CSRF token present"
+}

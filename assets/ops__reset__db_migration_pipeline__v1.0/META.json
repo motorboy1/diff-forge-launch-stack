@@ -1,0 +1,12 @@
+{
+  "asset_id": "ops__reset__db_migration_pipeline__v1.0",
+  "domain": "ops",
+  "risk": "high",
+  "portability": "low",
+  "source_run_ids": ["RUN-2026-1E7B"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "20-30 min",
+  "gate_pass": true,
+  "gate_condition": "Pipeline resets migrations in test DB, preserves seed data, and restores schema to identical state",
+  "evidence": "Test DB reset completed: 23 migrations dropped, schema rebuilt, 5 seed tables verified intact, schema diff shows 0 changes"
+}

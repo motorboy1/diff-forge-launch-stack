@@ -1,0 +1,12 @@
+{
+  "asset_id": "auth__rate_limit__login_protection__v1.0",
+  "domain": "auth",
+  "risk": "low",
+  "portability": "medium",
+  "source_run_ids": ["RUN-2026-AD6E"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "15-25 min",
+  "gate_pass": true,
+  "gate_condition": "Rate limiter blocks 6th login attempt within 5 minutes and returns 429 with retry-after header",
+  "evidence": "5 rapid login attempts succeeded, 6th returned 429 with Retry-After: 300 header. Counter reset after window expiry confirmed."
+}

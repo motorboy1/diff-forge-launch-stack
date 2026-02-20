@@ -1,0 +1,12 @@
+{
+  "asset_id": "gov__classify__risk_scoring_matrix__v1.0",
+  "domain": "governance",
+  "risk": "low",
+  "portability": "high",
+  "source_run_ids": ["RUN-2026-D9A1"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "10-20 min",
+  "gate_pass": true,
+  "gate_condition": "Matrix scores 15/15 test assets within expected risk bands and no score exceeds bounds",
+  "evidence": "All 15 sample assets scored correctly: 4 low, 8 medium, 3 high — matching manual classification"
+}

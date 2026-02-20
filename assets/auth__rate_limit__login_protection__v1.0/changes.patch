@@ -1,0 +1,65 @@
+diff --git a/app/middleware/login_rate_limiter.rb b/app/middleware/login_rate_limiter.rb
+new file mode 100644
+index 0000000..e5f7a89
+--- /dev/null
++++ b/app/middleware/login_rate_limiter.rb
+@@ -0,0 +1,52 @@
++# frozen_string_literal: true
++
++class LoginRateLimiter
++  MAX_ATTEMPTS = 5
++  WINDOW_SECONDS = 300 # 5 minutes
++  LOGIN_PATHS = %w[/users/sign_in /login /api/v1/auth/login].freeze
++
++  def initialize(app, options = {})
++    @app = app
++    @max_attempts = options.fetch(:max_attempts, MAX_ATTEMPTS)
++    @window = options.fetch(:window, WINDOW_SECONDS)
++    @store = options.fetch(:store, Rails.cache)
++  end
++
++  def call(env)
++    request = Rack::Request.new(env)
++
++    if login_request?(request)
++      key = rate_limit_key(request)
++      attempts = @store.read(key).to_i
++
++      if attempts >= @max_attempts
++        return too_many_requests_response
++      end
++
++      @store.increment(key, 1, expires_in: @window)
++      status, headers, body = @app.call(env)
++
++      # Reset counter on successful login
++      if status < 400
++        @store.delete(key)
++      end
++
++      [status, headers, body]
++    else
++      @app.call(env)
++    end
++  end
++
++  private
++
++  def login_request?(request)
++    request.post? && LOGIN_PATHS.include?(request.path)
++  end
++
++  def rate_limit_key(request)
++    ip = request.ip
++    "login_rate_limit:#{ip}"
++  end
++
++  def too_many_requests_response
++    body = { error: "Too many login attempts. Please try again later.", status: 429 }.to_json
++    headers = {
++      "Content-Type" => "application/json",
++      "Retry-After" => @window.to_s
++    }
++    [429, headers, [body]]
++  end
++end

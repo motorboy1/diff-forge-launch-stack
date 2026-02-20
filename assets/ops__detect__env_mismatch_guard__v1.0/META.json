@@ -1,0 +1,12 @@
+{
+  "asset_id": "ops__detect__env_mismatch_guard__v1.0",
+  "domain": "ops",
+  "risk": "low",
+  "portability": "high",
+  "source_run_ids": ["RUN-2026-3A9D"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "10-15 min",
+  "gate_pass": true,
+  "gate_condition": "Guard detects 3/3 intentional mismatches and blocks deploy with specific error messages",
+  "evidence": "Injected missing DATABASE_URL, wrong Ruby version, and outdated bundler — all 3 detected and reported within 1.2s"
+}

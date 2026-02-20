@@ -1,0 +1,12 @@
+{
+  "asset_id": "auth__policy_gate__student_approval__v1.0",
+  "domain": "auth",
+  "risk": "medium",
+  "portability": "high",
+  "source_run_ids": ["RUN-2026-7A3E"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "15-30 min",
+  "gate_pass": true,
+  "gate_condition": "Policy gate rejects unapproved student accounts and allows approved accounts through all 6 test scenarios",
+  "evidence": "6/6 test cases passed: 3 unapproved students blocked, 2 approved students granted, 1 admin bypassed gate"
+}

@@ -1,0 +1,61 @@
+diff --git a/app/middleware/approved_only_access.rb b/app/middleware/approved_only_access.rb
+new file mode 100644
+index 0000000..c3d9a47
+--- /dev/null
++++ b/app/middleware/approved_only_access.rb
+@@ -0,0 +1,48 @@
++# frozen_string_literal: true
++
++class ApprovedOnlyAccess
++  PROTECTED_PATHS = %w[/dashboard /api/v1 /admin /premium].freeze
++  BYPASS_PATHS = %w[/login /signup /approval-status /public].freeze
++
++  def initialize(app, options = {})
++    @app = app
++    @protected_paths = options.fetch(:protected_paths, PROTECTED_PATHS)
++    @bypass_paths = options.fetch(:bypass_paths, BYPASS_PATHS)
++  end
++
++  def call(env)
++    request = Rack::Request.new(env)
++
++    return @app.call(env) if bypass_path?(request.path)
++    return @app.call(env) unless protected_path?(request.path)
++
++    user = extract_user(env)
++    return forbidden_response("Authentication required") unless user
++    return forbidden_response("Account not approved") unless user.approved?
++
++    env["HTTP_X_APPROVAL_STATUS"] = "approved"
++    env["HTTP_X_USER_ROLE"] = user.role.to_s
++    @app.call(env)
++  end
++
++  private
++
++  def protected_path?(path)
++    @protected_paths.any? { |p| path.start_with?(p) }
++  end
++
++  def bypass_path?(path)
++    @bypass_paths.any? { |p| path.start_with?(p) }
++  end
++
++  def extract_user(env)
++    env["warden"]&.user || env["current_user"]
++  end
++
++  def forbidden_response(message)
++    body = { error: message, status: 403 }.to_json
++    [403, { "Content-Type" => "application/json" }, [body]]
++  end
++end
+diff --git a/config/application.rb b/config/application.rb
+index 1a2b3c4..d5e6f7a 100644
+--- a/config/application.rb
++++ b/config/application.rb
+@@ -15,6 +15,7 @@ module MyApp
+     config.load_defaults 7.1
++    config.middleware.insert_after Warden::Manager, ApprovedOnlyAccess
+   end
+ end

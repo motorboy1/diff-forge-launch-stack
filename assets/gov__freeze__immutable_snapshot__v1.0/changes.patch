@@ -1,0 +1,83 @@
+diff --git a/lib/asset_freezer.rb b/lib/asset_freezer.rb
+new file mode 100644
+index 0000000..c5d6e7f
+--- /dev/null
++++ b/lib/asset_freezer.rb
+@@ -0,0 +1,65 @@
++# frozen_string_literal: true
++
++require "digest"
++require "json"
++
++class AssetFreezer
++  class ImmutableError < StandardError; end
++
++  FREEZE_MANIFEST = ".freeze_manifest.json"
++
++  def initialize(asset_path)
++    @asset_path = asset_path
++  end
++
++  def freeze!
++    raise ImmutableError, "Asset is already frozen" if frozen?
++
++    checksums = compute_checksums
++    manifest = {
++      frozen_at: Time.now.utc.iso8601,
++      asset_id: read_asset_id,
++      checksums: checksums,
++      total_files: checksums.size,
++      integrity_hash: compute_integrity_hash(checksums)
++    }
++
++    File.write(manifest_path, JSON.pretty_generate(manifest))
++    set_readonly!
++
++    puts "[Freeze] Asset frozen: #{manifest[:asset_id]}"
++    puts "[Freeze] Integrity hash: #{manifest[:integrity_hash]}"
++    manifest
++  end
++
++  def frozen?
++    File.exist?(manifest_path)
++  end
++
++  def verify_integrity
++    raise "Asset is not frozen" unless frozen?
++
++    manifest = JSON.parse(File.read(manifest_path))
++    current = compute_checksums
++
++    manifest["checksums"].each do |file, expected_hash|
++      actual = current[file]
++      unless actual == expected_hash
++        return { valid: false, error: "#{file}: expected #{expected_hash}, got #{actual}" }
++      end
++    end
++
++    { valid: true, integrity_hash: manifest["integrity_hash"] }
++  end
++
++  private
++
++  def manifest_path = File.join(@asset_path, FREEZE_MANIFEST)
++
++  def compute_checksums
++    Dir.glob(File.join(@asset_path, "*"))
++       .reject { |f| File.basename(f) == FREEZE_MANIFEST }
++       .each_with_object({}) { |f, h| h[File.basename(f)] = Digest::SHA256.file(f).hexdigest }
++  end
++
++  def compute_integrity_hash(checksums)
++    Digest::SHA256.hexdigest(checksums.sort.map { |k, v| "#{k}:#{v}" }.join("|"))
++  end
++
++  def read_asset_id
++    meta = JSON.parse(File.read(File.join(@asset_path, "META.json"))) rescue {}
++    meta["asset_id"] || File.basename(@asset_path)
++  end
++
++  def set_readonly!
++    Dir.glob(File.join(@asset_path, "*")).each { |f| File.chmod(0444, f) }
++  end
++end

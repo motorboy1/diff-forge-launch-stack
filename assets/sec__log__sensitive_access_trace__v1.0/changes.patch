@@ -1,0 +1,82 @@
+diff --git a/app/models/concerns/sensitive_access_tracer.rb b/app/models/concerns/sensitive_access_tracer.rb
+new file mode 100644
+index 0000000..c4d5e6f
+--- /dev/null
++++ b/app/models/concerns/sensitive_access_tracer.rb
+@@ -0,0 +1,62 @@
++# frozen_string_literal: true
++
++module SensitiveAccessTracer
++  extend ActiveSupport::Concern
++
++  SENSITIVE_FIELDS = %i[email phone ssn date_of_birth address credit_card_last4].freeze
++
++  included do
++    SENSITIVE_FIELDS.each do |field|
++      next unless column_names.include?(field.to_s)
++
++      define_method(field) do
++        value = read_attribute(field)
++        self.class.log_sensitive_access(
++          field: field,
++          record_id: id,
++          record_type: self.class.name,
++          accessor: Current.user&.id,
++          value_preview: mask_value(field, value)
++        )
++        value
++      end
++    end
++  end
++
++  class_methods do
++    def log_sensitive_access(field:, record_id:, record_type:, accessor:, value_preview:)
++      entry = {
++        event: "sensitive_field_access",
++        timestamp: Time.current.iso8601,
++        field: field,
++        record_type: record_type,
++        record_id: record_id,
++        accessed_by: accessor,
++        value_preview: value_preview,
++        request_id: Current.request_id,
++        ip_address: Current.ip_address,
++        user_agent: Current.user_agent
++      }
++
++      Rails.logger.info(entry.to_json)
++      SensitiveAccessLog.create!(entry.except(:event)) if defined?(SensitiveAccessLog)
++    end
++  end
++
++  private
++
++  def mask_value(field, value)
++    return "[nil]" if value.nil?
++
++    case field
++    when :email
++      parts = value.split("@")
++      "#{parts[0][0..1]}***@#{parts[1]}" rescue "***"
++    when :phone
++      "***#{value[-4..]}" rescue "***"
++    when :ssn
++      "***-**-#{value[-4..]}" rescue "***"
++    when :credit_card_last4
++      "****#{value}"
++    else
++      "#{value[0..2]}***" rescue "***"
++    end
++  end
++end
+diff --git a/app/models/current.rb b/app/models/current.rb
+index a1b2c3d..d4e5f6a 100644
+--- a/app/models/current.rb
++++ b/app/models/current.rb
+@@ -1,4 +1,7 @@
+ class Current < ActiveSupport::CurrentAttributes
+   attribute :user
+   attribute :ip_address
++  attribute :request_id
++  attribute :user_agent
+ end

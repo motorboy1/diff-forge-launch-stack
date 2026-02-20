@@ -1,0 +1,12 @@
+{
+  "asset_id": "ops__retry__controlled_backoff_loop__v1.0",
+  "domain": "ops",
+  "risk": "low",
+  "portability": "high",
+  "source_run_ids": ["RUN-2026-4B1E"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "10-20 min",
+  "gate_pass": true,
+  "gate_condition": "Retry loop recovers from transient failure on 3rd attempt and circuit breaker trips after 5 consecutive failures",
+  "evidence": "Simulated transient failure: succeeded on retry 3/5. Circuit breaker opened after 5 failures, rejected next 3 calls, auto-reset after 30s."
+}

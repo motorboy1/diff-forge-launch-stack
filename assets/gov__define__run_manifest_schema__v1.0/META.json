@@ -1,0 +1,12 @@
+{
+  "asset_id": "gov__define__run_manifest_schema__v1.0",
+  "domain": "governance",
+  "risk": "low",
+  "portability": "high",
+  "source_run_ids": ["RUN-2026-A1F3"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "10-15 min",
+  "gate_pass": true,
+  "gate_condition": "Schema validates against JSON Schema Draft 2020-12 and all 5 required fields present",
+  "evidence": "Automated schema lint passed with 0 errors on 12 sample Run records"
+}

@@ -1,0 +1,12 @@
+{
+  "asset_id": "sec__log__sensitive_access_trace__v1.0",
+  "domain": "security",
+  "risk": "medium",
+  "portability": "high",
+  "source_run_ids": ["RUN-2026-G5C2"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "20-35 min",
+  "gate_pass": true,
+  "gate_condition": "All PII field accesses logged with request context and no sensitive values stored in plain text",
+  "evidence": "Accessed 3 PII fields (email, SSN, phone), all logged with masked values and full request metadata"
+}

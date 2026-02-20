@@ -1,0 +1,78 @@
+diff --git a/app/controllers/concerns/protected_rendering.rb b/app/controllers/concerns/protected_rendering.rb
+new file mode 100644
+index 0000000..b2c3d4e
+--- /dev/null
++++ b/app/controllers/concerns/protected_rendering.rb
+@@ -0,0 +1,44 @@
++# frozen_string_literal: true
++
++module ProtectedRendering
++  extend ActiveSupport::Concern
++
++  included do
++    before_action :verify_controller_route
++    before_action :enforce_csrf_protection
++    after_action :add_security_headers
++  end
++
++  private
++
++  def verify_controller_route
++    unless request.env["action_dispatch.request.path_parameters"].present?
++      render_forbidden("Direct template access is not permitted")
++    end
++  end
++
++  def enforce_csrf_protection
++    return if request.get? || request.head?
++
++    unless valid_authenticity_token?(session, form_authenticity_param) ||
++           valid_authenticity_token?(session, request.headers["X-CSRF-Token"])
++      render_forbidden("Invalid CSRF token")
++    end
++  end
++
++  def add_security_headers
++    response.headers["X-Frame-Options"] = "DENY"
++    response.headers["X-Content-Type-Options"] = "nosniff"
++    response.headers["X-Rendered-By"] = "controller"
++    response.headers["Content-Security-Policy"] = "default-src 'self'"
++  end
++
++  def render_forbidden(message)
++    respond_to do |format|
++      format.html { render plain: "403 Forbidden", status: :forbidden }
++      format.json { render json: { error: message }, status: :forbidden }
++    end
++  end
++end
+diff --git a/app/middleware/template_access_guard.rb b/app/middleware/template_access_guard.rb
+new file mode 100644
+index 0000000..e5f6a7b
+--- /dev/null
++++ b/app/middleware/template_access_guard.rb
+@@ -0,0 +1,24 @@
++class TemplateAccessGuard
++  TEMPLATE_EXTENSIONS = %w[.erb .haml .slim .html].freeze
++
++  def initialize(app)
++    @app = app
++  end
++
++  def call(env)
++    path = env["PATH_INFO"]
++
++    if direct_template_request?(path)
++      body = { error: "Direct template access forbidden" }.to_json
++      return [403, { "Content-Type" => "application/json" }, [body]]
++    end
++
++    @app.call(env)
++  end
++
++  private
++
++  def direct_template_request?(path)
++    TEMPLATE_EXTENSIONS.any? { |ext| path.end_with?(ext) }
++  end
++end

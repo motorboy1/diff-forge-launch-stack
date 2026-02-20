@@ -1,0 +1,12 @@
+{
+  "asset_id": "gov__freeze__immutable_snapshot__v1.0",
+  "domain": "governance",
+  "risk": "medium",
+  "portability": "medium",
+  "source_run_ids": ["RUN-2026-C4D8"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "15-25 min",
+  "gate_pass": true,
+  "gate_condition": "Frozen snapshot SHA-256 matches pre-freeze checksum and all write attempts are rejected",
+  "evidence": "Attempted 5 write operations on frozen asset, all correctly returned ImmutableError"
+}

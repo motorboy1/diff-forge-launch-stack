@@ -1,0 +1,53 @@
+diff --git a/lib/tasks/asset_cache.rake b/lib/tasks/asset_cache.rake
+new file mode 100644
+index 0000000..c4d5e67
+--- /dev/null
++++ b/lib/tasks/asset_cache.rake
+@@ -0,0 +1,45 @@
++# frozen_string_literal: true
++
++namespace :assets do
++  namespace :cache do
++    desc "Clear all asset caches and rebuild indexes"
++    task rebuild: :environment do
++      puts "[Cache] Starting cache rebuild..."
++      start_time = Time.current
++
++      # Step 1: Clear Rails cache
++      puts "[Cache] Step 1/4: Clearing Rails cache..."
++      Rails.cache.clear
++
++      # Step 2: Clear asset pipeline cache
++      puts "[Cache] Step 2/4: Clearing asset pipeline..."
++      FileUtils.rm_rf(Rails.root.join("tmp", "cache", "assets"))
++      FileUtils.rm_rf(Rails.root.join("public", "assets", ".sprockets-manifest*"))
++
++      # Step 3: Rebuild asset index
++      puts "[Cache] Step 3/4: Rebuilding asset index..."
++      Rake::Task["assets:precompile"].invoke
++
++      # Step 4: Verify integrity
++      puts "[Cache] Step 4/4: Verifying integrity..."
++      manifest = Dir.glob(Rails.root.join("public", "assets", ".sprockets-manifest*.json")).first
++      if manifest
++        checksum = Digest::SHA256.file(manifest).hexdigest
++        puts "[Cache] Manifest checksum: #{checksum}"
++      end
++
++      elapsed = (Time.current - start_time).round(1)
++      puts "[Cache] Rebuild complete in #{elapsed}s"
++    end
++
++    desc "Verify cache integrity"
++    task verify: :environment do
++      manifest = Dir.glob(Rails.root.join("public", "assets", ".sprockets-manifest*.json")).first
++      if manifest
++        data = JSON.parse(File.read(manifest))
++        puts "[Cache] #{data['assets'].size} assets indexed"
++        puts "[Cache] Manifest OK"
++      else
++        puts "[Cache] WARNING: No manifest found. Run assets:cache:rebuild"
++      end
++    end
++  end
++end

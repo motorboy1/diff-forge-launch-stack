@@ -1,0 +1,88 @@
+diff --git a/app/models/role_audit_log.rb b/app/models/role_audit_log.rb
+new file mode 100644
+index 0000000..d4e8f12
+--- /dev/null
++++ b/app/models/role_audit_log.rb
+@@ -0,0 +1,30 @@
++# frozen_string_literal: true
++
++class RoleAuditLog < ApplicationRecord
++  belongs_to :actor, class_name: "User"
++  belongs_to :target, class_name: "User"
++
++  validates :old_role, :new_role, :reason, presence: true
++
++  scope :recent, -> { order(created_at: :desc).limit(100) }
++  scope :for_user, ->(user) { where(target: user) }
++  scope :by_actor, ->(actor) { where(actor: actor) }
++
++  def self.track_change(actor:, target:, old_role:, new_role:, reason:, ip_address: nil)
++    create!(
++      actor: actor,
++      target: target,
++      old_role: old_role,
++      new_role: new_role,
++      reason: reason,
++      ip_address: ip_address,
++      changed_at: Time.current
++    )
++  end
++
++  def escalation?
++    role_weight(new_role) > role_weight(old_role)
++  end
++
++  private
++
++  def role_weight(role)
++    { "viewer" => 0, "student" => 1, "member" => 2, "admin" => 3, "super_admin" => 4 }.fetch(role.to_s, 0)
++  end
++end
+diff --git a/app/models/concerns/role_auditable.rb b/app/models/concerns/role_auditable.rb
+new file mode 100644
+index 0000000..f7a1b23
+--- /dev/null
++++ b/app/models/concerns/role_auditable.rb
+@@ -0,0 +1,18 @@
++module RoleAuditable
++  extend ActiveSupport::Concern
++
++  included do
++    before_update :log_role_change, if: :will_save_change_to_role?
++  end
++
++  private
++
++  def log_role_change
++    RoleAuditLog.track_change(
++      actor: Current.user || self,
++      target: self,
++      old_role: role_was,
++      new_role: role,
++      reason: role_change_reason || "No reason provided",
++      ip_address: Current.ip_address
++    )
++  end
++end
+diff --git a/db/migrate/20260214_create_role_audit_logs.rb b/db/migrate/20260214_create_role_audit_logs.rb
+new file mode 100644
+index 0000000..a9b2c34
+--- /dev/null
++++ b/db/migrate/20260214_create_role_audit_logs.rb
+@@ -0,0 +1,16 @@
++class CreateRoleAuditLogs < ActiveRecord::Migration[7.1]
++  def change
++    create_table :role_audit_logs do |t|
++      t.references :actor, null: false, foreign_key: { to_table: :users }
++      t.references :target, null: false, foreign_key: { to_table: :users }
++      t.string :old_role, null: false
++      t.string :new_role, null: false
++      t.text :reason, null: false
++      t.string :ip_address
++      t.datetime :changed_at, null: false
++      t.timestamps
++    end
++
++    add_index :role_audit_logs, [:target_id, :changed_at]
++  end
++end

@@ -1,0 +1,83 @@
+diff --git a/lib/controlled_backoff.rb b/lib/controlled_backoff.rb
+new file mode 100644
+index 0000000..e8f9a01
+--- /dev/null
++++ b/lib/controlled_backoff.rb
+@@ -0,0 +1,68 @@
++# frozen_string_literal: true
++
++class ControlledBackoff
++  class CircuitOpenError < StandardError; end
++
++  attr_reader :failure_count, :circuit_state
++
++  def initialize(options = {})
++    @max_retries = options.fetch(:max_retries, 5)
++    @base_delay = options.fetch(:base_delay, 1.0)
++    @max_delay = options.fetch(:max_delay, 30.0)
++    @circuit_threshold = options.fetch(:circuit_threshold, 5)
++    @circuit_reset_timeout = options.fetch(:circuit_reset_timeout, 30)
++    @retryable_exceptions = options.fetch(:retryable_exceptions, [StandardError])
++
++    @failure_count = 0
++    @circuit_state = :closed
++    @circuit_opened_at = nil
++  end
++
++  def execute(&block)
++    check_circuit!
++
++    attempt = 0
++    begin
++      attempt += 1
++      result = yield
++      reset_circuit!
++      result
++    rescue *@retryable_exceptions => e
++      record_failure!
++
++      if attempt < @max_retries && @circuit_state == :closed
++        delay = calculate_delay(attempt)
++        Rails.logger.warn("[Backoff] Attempt #{attempt}/#{@max_retries} failed: #{e.message}. Retrying in #{delay}s...")
++        sleep(delay)
++        retry
++      else
++        Rails.logger.error("[Backoff] All #{@max_retries} attempts failed. Last error: #{e.message}")
++        raise
++      end
++    end
++  end
++
++  private
++
++  def calculate_delay(attempt)
++    delay = @base_delay * (2 ** (attempt - 1))
++    jitter = rand * @base_delay
++    [delay + jitter, @max_delay].min
++  end
++
++  def check_circuit!
++    if @circuit_state == :open
++      if Time.current - @circuit_opened_at >= @circuit_reset_timeout
++        @circuit_state = :half_open
++      else
++        raise CircuitOpenError, "Circuit breaker is open. Retry after #{@circuit_reset_timeout}s"
++      end
++    end
++  end
++
++  def record_failure!
++    @failure_count += 1
++    if @failure_count >= @circuit_threshold
++      @circuit_state = :open
++      @circuit_opened_at = Time.current
++      Rails.logger.error("[Backoff] Circuit breaker opened after #{@failure_count} consecutive failures")
++    end
++  end
++
++  def reset_circuit!
++    @failure_count = 0
++    @circuit_state = :closed
++    @circuit_opened_at = nil
++  end
++end

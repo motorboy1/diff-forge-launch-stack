@@ -1,0 +1,12 @@
+{
+  "asset_id": "ops__clear__asset_cache_rebuild__v1.0",
+  "domain": "ops",
+  "risk": "medium",
+  "portability": "high",
+  "source_run_ids": ["RUN-2026-2F8C"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "10-20 min",
+  "gate_pass": true,
+  "gate_condition": "Cache clear completes in under 30s and rebuild produces identical index checksums",
+  "evidence": "Cache cleared in 2.3s, rebuild completed in 8.7s, SHA-256 of rebuilt index matches pre-clear snapshot"
+}

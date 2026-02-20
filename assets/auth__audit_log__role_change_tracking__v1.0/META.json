@@ -1,0 +1,12 @@
+{
+  "asset_id": "auth__audit_log__role_change_tracking__v1.0",
+  "domain": "auth",
+  "risk": "low",
+  "portability": "high",
+  "source_run_ids": ["RUN-2026-9C5D"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "15-20 min",
+  "gate_pass": true,
+  "gate_condition": "All role changes produce audit log entries with actor, target, old_role, new_role, and timestamp",
+  "evidence": "5 role change operations logged correctly: 2 promotions, 1 demotion, 1 self-service, 1 admin override — all with complete metadata"
+}

@@ -1,0 +1,12 @@
+{
+  "asset_id": "auth__middleware__approved_only_access__v1.0",
+  "domain": "auth",
+  "risk": "medium",
+  "portability": "high",
+  "source_run_ids": ["RUN-2026-8B4F"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "15-25 min",
+  "gate_pass": true,
+  "gate_condition": "Middleware rejects all unapproved users with 403 and passes approved users with correct headers",
+  "evidence": "Integration test: 4 unapproved requests returned 403, 3 approved requests returned 200 with X-Approval-Status header"
+}

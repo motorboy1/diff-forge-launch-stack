@@ -1,0 +1,88 @@
+diff --git a/lib/gate_enforcer.rb b/lib/gate_enforcer.rb
+new file mode 100644
+index 0000000..b3c4d5e
+--- /dev/null
++++ b/lib/gate_enforcer.rb
+@@ -0,0 +1,72 @@
++# frozen_string_literal: true
++
++class GateEnforcer
++  REQUIRED_FILES = %w[changes.patch APPLY.md META.json SOURCE_RUN.md RISK_GUIDE.md].freeze
++  VALID_RISK_LEVELS = %w[low medium high].freeze
++
++  attr_reader :results
++
++  def initialize(asset_path)
++    @asset_path = asset_path
++    @results = []
++  end
++
++  def enforce!
++    check_required_files
++    check_meta_json
++    check_patch_non_empty
++    check_run_freshness
++    check_risk_defined
++
++    passed = @results.all? { |r| r[:status] == :pass }
++    {
++      pass: passed,
++      checks: @results,
++      summary: passed ? "GATE PASS" : "GATE FAIL: #{failures.join(', ')}"
++    }
++  end
++
++  private
++
++  def check_required_files
++    REQUIRED_FILES.each do |file|
++      path = File.join(@asset_path, file)
++      if File.exist?(path)
++        record(:pass, "file_exists:#{file}", "File present")
++      else
++        record(:fail, "file_exists:#{file}", "Missing required file: #{file}")
++      end
++    end
++  end
++
++  def check_meta_json
++    meta_path = File.join(@asset_path, "META.json")
++    return record(:fail, "meta_valid", "META.json not found") unless File.exist?(meta_path)
++
++    meta = JSON.parse(File.read(meta_path))
++    %w[asset_id domain risk portability source_run_ids gate_pass].each do |field|
++      unless meta.key?(field)
++        return record(:fail, "meta_field:#{field}", "Missing field: #{field}")
++      end
++    end
++    record(:pass, "meta_valid", "All required fields present")
++  rescue JSON::ParserError => e
++    record(:fail, "meta_valid", "Invalid JSON: #{e.message}")
++  end
++
++  def check_patch_non_empty
++    patch_path = File.join(@asset_path, "changes.patch")
++    return record(:fail, "patch_content", "Patch file missing") unless File.exist?(patch_path)
++
++    lines = File.readlines(patch_path).reject(&:empty?)
++    if lines.size >= 10
++      record(:pass, "patch_content", "#{lines.size} lines")
++    else
++      record(:fail, "patch_content", "Patch too small: #{lines.size} lines")
++    end
++  end
++
++  def check_run_freshness
++    meta = JSON.parse(File.read(File.join(@asset_path, "META.json"))) rescue {}
++    run_ids = meta["source_run_ids"] || []
++    run_ids.any? ? record(:pass, "run_fresh", "#{run_ids.size} run(s)") : record(:fail, "run_fresh", "No Run IDs")
++  end
++
++  def check_risk_defined
++    meta = JSON.parse(File.read(File.join(@asset_path, "META.json"))) rescue {}
++    VALID_RISK_LEVELS.include?(meta["risk"]) ? record(:pass, "risk_defined", meta["risk"]) : record(:fail, "risk_defined", "Invalid risk")
++  end
++
++  def record(status, name, detail) = @results << { status: status, name: name, detail: detail }
++  def failures = @results.select { |r| r[:status] == :fail }.map { |r| r[:name] }
++end

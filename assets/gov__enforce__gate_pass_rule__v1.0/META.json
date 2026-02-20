@@ -1,0 +1,12 @@
+{
+  "asset_id": "gov__enforce__gate_pass_rule__v1.0",
+  "domain": "governance",
+  "risk": "high",
+  "portability": "medium",
+  "source_run_ids": ["RUN-2026-B7E2"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "20-30 min",
+  "gate_pass": true,
+  "gate_condition": "All gate rules execute without exception and reject 3/3 known-bad test fixtures",
+  "evidence": "Gate engine rejected malformed asset, missing-patch asset, and expired-run asset correctly"
+}

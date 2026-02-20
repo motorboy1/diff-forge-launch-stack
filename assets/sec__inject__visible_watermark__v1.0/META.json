@@ -1,0 +1,12 @@
+{
+  "asset_id": "sec__inject__visible_watermark__v1.0",
+  "domain": "security",
+  "risk": "medium",
+  "portability": "high",
+  "source_run_ids": ["RUN-2026-E3F7"],
+  "compatible_stack": ["Rails 7+", "Node.js 18+", "Django 4+"],
+  "estimated_apply_time": "20-30 min",
+  "gate_pass": true,
+  "gate_condition": "Watermark visible in rendered HTML output and survives CSS minification",
+  "evidence": "Visual regression test confirmed watermark present in 5/5 test pages after CSS minification"
+}

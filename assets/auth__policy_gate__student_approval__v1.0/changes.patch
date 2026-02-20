@@ -1,0 +1,69 @@
+diff --git a/app/policies/student_approval_policy.rb b/app/policies/student_approval_policy.rb
+new file mode 100644
+index 0000000..a8f3c12
+--- /dev/null
++++ b/app/policies/student_approval_policy.rb
+@@ -0,0 +1,42 @@
++# frozen_string_literal: true
++
++class StudentApprovalPolicy
++  attr_reader :user, :resource
++
++  def initialize(user, resource)
++    @user = user
++    @resource = resource
++  end
++
++  def access?
++    return true if user.admin?
++    return false unless user.student?
++    user.approved?
++  end
++
++  def request_approval?
++    user.student? && !user.approved? && !user.pending_approval?
++  end
++
++  class Scope
++    def initialize(user, scope)
++      @user = user
++      @scope = scope
++    end
++
++    def resolve
++      if @user.admin?
++        @scope.all
++      elsif @user.approved?
++        @scope.where(visibility: [:public, :student])
++      else
++        @scope.where(visibility: :public)
++      end
++    end
++  end
++end
+diff --git a/app/controllers/concerns/student_gated.rb b/app/controllers/concerns/student_gated.rb
+new file mode 100644
+index 0000000..b2c7f91
+--- /dev/null
++++ b/app/controllers/concerns/student_gated.rb
+@@ -0,0 +1,19 @@
++module StudentGated
++  extend ActiveSupport::Concern
++
++  included do
++    before_action :enforce_student_approval, if: :student_resource?
++  end
++
++  private
++
++  def enforce_student_approval
++    policy = StudentApprovalPolicy.new(current_user, requested_resource)
++    unless policy.access?
++      redirect_to approval_pending_path, alert: "Your account is pending approval."
++    end
++  end
++
++  def student_resource?
++    false # Override in controllers that need gating
++  end
++end
